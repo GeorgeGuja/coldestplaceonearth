@@ -3,7 +3,9 @@
 **Defined:** 2026-02-07
 **Core Value:** Deliver accurate, reliable temperature data that correctly identifies the coldest place on Earth, served fast through a delightful user experience
 
-**Critical Constraint:** Must search GLOBALLY, not just pre-selected stations. If there's an unexpected -100°C in Africa, we must detect it.
+**Critical Constraint:** Must query ALL 10,000+ weather stations globally with ZERO filtering. If there's an unexpected -100°C in Africa, we MUST detect it.
+
+**Data Source:** NOAA ISD SYNOP data - 10,000+ stations including Antarctic research stations, Siberian outposts, Arctic stations. Public domain, no API keys, no rate limits.
 
 ## v1 Requirements (Local MVP)
 
@@ -11,12 +13,12 @@ Local proof-of-concept to validate the idea works before Cloudflare deployment.
 
 ### Data Fetching
 
-- [ ] **DATA-01**: System can fetch weather data from a weather API with true global coverage
-- [ ] **DATA-02**: System searches globally across ALL available weather stations (not limited to pre-selected list)
-- [ ] **DATA-03**: System can identify the absolute coldest location from all global data
-- [ ] **DATA-04**: System handles API rate limits gracefully without losing global coverage
-- [ ] **DATA-05**: System validates API responses to prevent bad data
-- [ ] **DATA-06**: System can detect unexpected cold anomalies anywhere on Earth
+- [ ] **DATA-01**: System can fetch SYNOP data from NOAA ISD FTP (10,000+ global stations)
+- [ ] **DATA-02**: System queries ALL weather stations globally with zero filtering or pre-selection
+- [ ] **DATA-03**: System can parse SYNOP format data to extract temperature, location, coordinates, timestamp
+- [ ] **DATA-04**: System can identify the absolute coldest location from all global station data
+- [ ] **DATA-05**: System validates SYNOP data to prevent parsing errors
+- [ ] **DATA-06**: System can detect unexpected cold anomalies anywhere on Earth (including non-traditional cold regions)
 
 ### Data Display
 
@@ -36,9 +38,9 @@ Local proof-of-concept to validate the idea works before Cloudflare deployment.
 
 ### Technical Foundation
 
-- [ ] **TECH-01**: Weather data updates can be triggered manually (proof of concept)
-- [ ] **TECH-02**: Data is cached locally to avoid repeated API calls during testing
-- [ ] **TECH-03**: System logs API usage to track free tier limits
+- [ ] **TECH-01**: SYNOP data updates can be triggered manually (proof of concept)
+- [ ] **TECH-02**: Data is cached locally to avoid repeated FTP downloads during testing
+- [ ] **TECH-03**: System logs data source access to monitor NOAA FTP usage
 - [ ] **TECH-04**: Code is structured to easily migrate to Cloudflare Workers later
 
 ## v2 Requirements (Cloudflare Deployment)
@@ -50,9 +52,9 @@ Full production deployment after local MVP validation.
 - **INFRA-01**: Deploy frontend to Cloudflare Pages
 - **INFRA-02**: Deploy backend to Cloudflare Workers
 - **INFRA-03**: Implement Cloudflare KV for data storage
-- **INFRA-04**: Set up scheduled cron jobs for automatic updates (hourly or daily)
+- **INFRA-04**: Set up scheduled cron jobs for automatic updates (every 3-6 hours matching SYNOP intervals)
 - **INFRA-05**: Implement edge caching with proper Cache-Control headers
-- **INFRA-06**: Set up monitoring and alerting for API limits
+- **INFRA-06**: Set up monitoring for NOAA FTP availability
 
 ### Enhanced Features
 
@@ -77,26 +79,65 @@ Full production deployment after local MVP validation.
 |---------|--------|
 | Weather forecasts | Focus is current temps only, not predictions |
 | User accounts/authentication | No personalization needed for v1 |
-| Real-time updates on every visit | Periodic updates sufficient, saves API calls |
+| Real-time updates on every visit | SYNOP updates every 3-6 hours, matching observation intervals |
 | Wind chill calculations | Adds "which temperature is real?" confusion |
-| Multiple API fallback | Start with one reliable API, add fallback only if needed |
+| Filtering by cold regions | Must check ALL stations to catch unexpected anomalies anywhere |
+| Multiple data source fallback | NOAA ISD is reliable, single source simplifies architecture |
 | Database for historical data | KV sufficient for current data, defer historical tracking |
 | Custom location search by user | System searches all locations automatically |
 | Email notifications | No notification use case for this product |
 
 ## Traceability
 
-Populated during roadmap creation.
+Populated during roadmap creation on 2026-02-08.
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| (To be filled by roadmapper) | | |
+| Requirement | Phase | Status | Success Criteria Reference |
+|-------------|-------|--------|---------------------------|
+| DATA-01 | Phase 1 | Not Started | SC1: Global discovery works |
+| DATA-02 | Phase 1 | Not Started | SC1: Global discovery works |
+| DATA-03 | Phase 1 | Not Started | SC1: Global discovery works |
+| DATA-04 | Phase 1 | Not Started | SC3: Resilience |
+| DATA-05 | Phase 1 | Not Started | SC3: Resilience |
+| DATA-06 | Phase 1 | Not Started | SC1: Global discovery works |
+| DISP-01 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| DISP-02 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| DISP-03 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| DISP-04 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| DISP-05 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| UX-01 | Phase 1 | Not Started | SC4: Mobile experience |
+| UX-02 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| UX-03 | Phase 1 | Not Started | SC2: Accuracy and credibility |
+| UX-04 | Phase 1 | Not Started | SC3: Resilience |
+| UX-05 | Phase 1 | Not Started | SC5: Development velocity |
+| TECH-01 | Phase 1 | Not Started | SC5: Development velocity |
+| TECH-02 | Phase 1 | Not Started | SC5: Development velocity |
+| TECH-03 | Phase 1 | Not Started | SC5: Development velocity |
+| TECH-04 | Phase 1 | Not Started | Phase 2 readiness |
+| INFRA-01 | Phase 2 | Not Started | SC4: Live domain |
+| INFRA-02 | Phase 2 | Not Started | SC2: Global performance |
+| INFRA-03 | Phase 2 | Not Started | SC2: Global performance |
+| INFRA-04 | Phase 2 | Not Started | SC1: Automatic freshness |
+| INFRA-05 | Phase 2 | Not Started | SC2: Global performance |
+| INFRA-06 | Phase 2 | Not Started | SC5: Operational visibility |
+| ENH-01 | Phase 3 | Not Started | SC5: Unit flexibility |
+| ENH-02 | Phase 3 | Not Started | SC1: Intuitive comparisons |
+| ENH-03 | Phase 3 | Not Started | SC4: Historical perspective |
+| ENH-04 | Phase 3 | Not Started | SC2: Visual richness |
+| ENH-05 | Phase 3 | Not Started | SC3: Weather storytelling |
+| ENH-06 | Phase 3 | Not Started | SC3: Weather storytelling |
 
 **Coverage:**
-- v1 requirements: 19 total
-- Mapped to phases: TBD
-- Unmapped: TBD
+- **v1 requirements:** 19 total (DATA-01 through TECH-04)
+- **Mapped to phases:** 19/19 (100%) - All in Phase 1
+- **Unmapped:** 0/19 (0%)
+
+**v2 requirements included in v1 roadmap:** 12 total
+- Phase 2: 6 requirements (INFRA-01 through INFRA-06)
+- Phase 3: 6 requirements (ENH-01 through ENH-06)
+
+**v2 requirements deferred post-v1:** 5 total
+- ADV-01 through ADV-05 (Advanced Features) - Evaluate based on user feedback and metrics
 
 ---
 *Requirements defined: 2026-02-07*
-*Last updated: 2026-02-07 after initial definition*
+*Last updated: 2026-02-08 with SYNOP data source and zero-filtering constraint*
