@@ -4,18 +4,39 @@ import { Observation } from './types.js';
 /**
  * List of known cold-weather stations in Canada (from weather.gc.ca)
  * Format: { code: string, name: string, province: string, latitude: number, longitude: number }
+ * 
+ * This list focuses on Arctic/Subarctic stations that frequently report extreme cold
  */
 const COLD_WEATHER_STATIONS = [
-  { code: 'wyf', name: 'Thomsen River', province: 'Northwest Territories', latitude: 73.23, longitude: -119.54 },
-  { code: 'yev', name: 'Inuvik', province: 'Northwest Territories', latitude: 68.30, longitude: -133.48 },
-  { code: 'yfb', name: 'Iqaluit', province: 'Nunavut', latitude: 63.75, longitude: -68.56 },
+  // Extreme Arctic - Nunavut
   { code: 'ylt', name: 'Alert', province: 'Nunavut', latitude: 82.52, longitude: -62.28 },
   { code: 'yeu', name: 'Eureka', province: 'Nunavut', latitude: 80.00, longitude: -85.93 },
+  { code: 'cysr', name: 'Resolute Bay', province: 'Nunavut', latitude: 74.72, longitude: -94.98 },
+  { code: 'cyvt', name: 'Grise Fiord', province: 'Nunavut', latitude: 76.42, longitude: -82.90 },
+  { code: 'yph', name: 'Hall Beach', province: 'Nunavut', latitude: 68.78, longitude: -81.24 },
   { code: 'yco', name: 'Kugluktuk', province: 'Nunavut', latitude: 67.82, longitude: -115.14 },
+  { code: 'yfb', name: 'Iqaluit', province: 'Nunavut', latitude: 63.75, longitude: -68.56 },
+  
+  // Northwest Territories - High Arctic
+  { code: 'wyf', name: 'Thomsen River', province: 'Northwest Territories', latitude: 73.23, longitude: -119.54 },
+  { code: 'wsq', name: 'Nangmagvik Lake (Aulavik NP)', province: 'Northwest Territories', latitude: 73.70, longitude: -119.92 },
   { code: 'yck', name: 'Colville Lake', province: 'Northwest Territories', latitude: 67.03, longitude: -126.08 },
+  { code: 'yev', name: 'Inuvik', province: 'Northwest Territories', latitude: 68.30, longitude: -133.48 },
   { code: 'yfs', name: 'Fort Simpson', province: 'Northwest Territories', latitude: 61.76, longitude: -121.24 },
+  { code: 'yzf', name: 'Yellowknife', province: 'Northwest Territories', latitude: 62.46, longitude: -114.44 },
+  
+  // Yukon
   { code: 'yxy', name: 'Whitehorse', province: 'Yukon', latitude: 60.72, longitude: -135.07 },
-  { code: 'yqt', name: 'Thunder Bay', province: 'Ontario', latitude: 48.37, longitude: -89.32 },
+  { code: 'yda', name: 'Dawson City', province: 'Yukon', latitude: 64.04, longitude: -139.13 },
+  { code: 'yop', name: 'Old Crow', province: 'Yukon', latitude: 67.57, longitude: -139.84 },
+  
+  // Northern Quebec/Labrador
+  { code: 'cymu', name: 'Kuujjuaq', province: 'Quebec', latitude: 58.10, longitude: -68.42 },
+  { code: 'cyph', name: 'Inukjuak', province: 'Quebec', latitude: 58.47, longitude: -78.08 },
+  
+  // Northern Manitoba/Saskatchewan
+  { code: 'ycs', name: 'Chesterfield Inlet', province: 'Nunavut', latitude: 63.35, longitude: -90.73 },
+  { code: 'ycm', name: 'St. Theresa Point', province: 'Manitoba', latitude: 53.85, longitude: -94.85 },
 ];
 
 interface ECHourlyScrapeResult {
