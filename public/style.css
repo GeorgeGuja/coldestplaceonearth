@@ -1,0 +1,256 @@
+:root {
+  --bg-primary: #0a0e27;
+  --bg-secondary: #1a1f3a;
+  --bg-card: #252b48;
+  --text-primary: #e8eaf6;
+  --text-secondary: #9fa8da;
+  --accent-cold: #64b5f6;
+  --accent-colder: #42a5f5;
+  --accent-coldest: #1e88e5;
+  --border: #3949ab;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1rem;
+  border: 4px solid var(--bg-card);
+  border-top-color: var(--accent-cold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error {
+  background: #d32f2f;
+  color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Coldest Place Card */
+.coldest-card {
+  background: linear-gradient(135deg, var(--accent-coldest) 0%, var(--accent-colder) 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px var(--shadow);
+  text-align: center;
+}
+
+.coldest-card h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.temperature {
+  font-size: 4rem;
+  font-weight: 700;
+  margin: 1rem 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.location-name {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.location-details {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.coordinates {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 1rem;
+  font-family: 'Courier New', monospace;
+}
+
+/* Top 5 List */
+.top5-section {
+  margin-top: 3rem;
+}
+
+.top5-section h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.top5-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.place-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.place-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.place-info {
+  flex: 1;
+}
+
+.place-rank {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-cold);
+  margin-right: 1rem;
+}
+
+.place-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.place-location {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.place-temp {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-cold);
+}
+
+/* Stats */
+.stats {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Footer */
+footer {
+  margin-top: 4rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--border);
+}
+
+footer a {
+  color: var(--accent-cold);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+.disclaimer {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  .temperature {
+    font-size: 3rem;
+  }
+
+  .location-name {
+    font-size: 1.4rem;
+  }
+
+  .place-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .place-rank {
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 1rem 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .temperature {
+    font-size: 2.5rem;
+  }
+}
