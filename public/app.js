@@ -38,7 +38,10 @@ function renderUI(data) {
         ${formatCoordinates(coldest.latitude, coldest.longitude)}
       </div>
       <div class="coordinates" style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.7;">
-        Station: ${coldest.stationId}
+        Station: ${coldest.stationId} • Source: ${coldest.source || 'METAR'}
+      </div>
+      <div class="coordinates" style="margin-top: 0.25rem; font-size: 0.8rem; opacity: 0.6;">
+        Observed: ${formatTimestamp(coldest.observationTime)}
       </div>
     </div>
 
@@ -63,9 +66,12 @@ function renderPlaceCard(place, rank) {
         <div class="place-rank">#${rank}</div>
         <div class="place-info">
           <div class="place-name">${place.name}</div>
-          <div class="place-location">${place.country} • ${place.stationId}</div>
+          <div class="place-location">${place.country} • ${place.stationId} • ${place.source || 'METAR'}</div>
           <div class="place-location" style="font-size: 0.8rem; margin-top: 0.25rem;">
             ${formatCoordinates(place.latitude, place.longitude)}
+          </div>
+          <div class="place-location" style="font-size: 0.75rem; margin-top: 0.15rem; opacity: 0.6;">
+            Observed: ${formatTimestamp(place.observationTime)}
           </div>
         </div>
       </div>

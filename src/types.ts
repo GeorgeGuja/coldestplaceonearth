@@ -24,7 +24,7 @@ export interface Observation {
   observationTime: string;
   name?: string;
   country?: string;
-  source: 'METAR' | 'EC' | 'ISD';
+  source: 'METAR' | 'EC' | 'ISD' | 'SYNOP';
 }
 
 /**
