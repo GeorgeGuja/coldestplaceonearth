@@ -183,11 +183,17 @@ export async function fetchAntarcticSynop(): Promise<SynopObservation[]> {
   // Pattern matches bulletins from:
   // - smaa*.ammc = Australian Met Center (manages Antarctic stations)
   // - smaa*.nzsp = New Zealand Met Service (manages some Antarctic stations)
-  // - smaa*.sabm = South African Weather Service (manages some Antarctic stations)
+  // - smaa*.sawb = South African Weather Service (manages multiple Antarctic stations)
+  // - smaa*.lfpw = Météo-France (manages Dumont d'Urville, Concordia)
+  // - smaa*.liib = Italian Met Service (manages Mario Zucchelli, Concordia)
+  // - smaa*.ruml = Russian Met Service (manages Vostok, Mirny, Progress, etc.)
   const patterns = [
     /^smaa\d+\.ammc\./i,
     /^smaa\d+\.nzsp\./i,
-    /^smaa\d+\.sabm\./i,
+    /^smaa\d+\.sawb\./i,
+    /^smaa\d+\.lfpw\./i,
+    /^smaa\d+\.liib\./i,
+    /^smaa\d+\.ruml\./i,
   ];
   
   const allObs: SynopObservation[] = [];
@@ -247,19 +253,14 @@ export async function fetchAllColdRegionSynopEnriched(): Promise<Observation[]> 
  * Convert multiple SYNOP observations to enriched Observations
  */
 async function enrichObservations(synopObs: SynopObservation[]): Promise<Observation[]> {
-  // Fetch metadata database once upfront to avoid N parallel requests
-  const { lookupStation } = await import('./synop-metadata.js');
-  
-  // Warm up the cache by triggering one lookup
-  // This will fetch the database once and cache it
-  if (synopObs.length > 0) {
-    await lookupStation(synopObs[0].stationId);
-  }
-  
-  // Now process all observations sequentially (fast since cached)
   const enriched: Observation[] = [];
   
   for (const synop of synopObs) {
+    // Skip observations without temperature data
+    if (synop.temperature === null) {
+      continue;
+    }
+    
     const metadata = await lookupStation(synop.stationId);
     
     const obs: Observation = {
