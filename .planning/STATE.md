@@ -15,9 +15,9 @@ progress:
 
 # Project State: ColdestPlace
 
-**Last Updated:** 2026-04-05
+**Last Updated:** 2026-04-06
 **Current Phase:** 02
-**Overall Status:** 🟡 Phase 2 Ready — Plans written, execution pending
+**Overall Status:** 🟢 Phase 2 Complete — Live at https://coldestplaceonearth.onrender.com
 
 ## Phase Status
 
@@ -83,19 +83,19 @@ None
 
 #### Requirements Status
 
-- INFRA-01: ⬜ Not Started — Deploy to Render free tier (web service)
-- INFRA-02: ⬜ Not Started — Configure `node-cron` inside server for hourly refresh (replaces Cloudflare cron trigger)
-- INFRA-04: ⬜ Not Started — Verify hourly cron executes successfully in production
-- INFRA-05: ⬜ Not Started — Configure Cache-Control headers on `/api/coldest` (60s max-age)
-- INFRA-06: ⬜ Not Started — Set up domain + HTTPS (Render provides free TLS on custom domains)
+- INFRA-01: ✅ Complete — Deployed to Render free tier (https://coldestplaceonearth.onrender.com)
+- INFRA-02: ✅ Complete — `node-cron` hourly refresh running; cache pre-warmed on startup
+- INFRA-04: ✅ Complete — Cron executing in production; 5003 stations, SYNOP+METAR+EC sources
+- INFRA-05: ✅ Complete — `Cache-Control: public, max-age=60` confirmed on live API
+- INFRA-06: ✅ Complete — HTTPS via *.onrender.com active
 
 #### Success Criteria Status
 
-- [ ] Automatic freshness (hourly cron verified, "last updated" timestamp auto-advances)
-- [ ] Global performance (<2s response time for API + static assets)
-- [ ] Reliability (site stays up; HTTPS accessible at *.onrender.com)
-- [ ] Live domain (HTTPS access at custom domain or `*.onrender.com`)
-- [ ] Operational visibility (Render dashboard shows cron execution logs)
+- [x] Automatic freshness (hourly cron verified, cron logs confirmed in Render)
+- [x] Global performance (API responds in <100ms from warm cache; homepage <2s)
+- [x] Reliability (site live at https://coldestplaceonearth.onrender.com)
+- [x] Live domain (HTTPS at https://coldestplaceonearth.onrender.com)
+- [x] Operational visibility (Render dashboard shows cron execution logs)
 
 #### Active Work
 
@@ -146,14 +146,14 @@ None — blocked by Phase 2 completion
 ## Overall Progress
 
 **Phase 1:** 12/20 complete, 8/20 partial — functionally done
-**Phase 2:** 0/6 requirements
+**Phase 2:** 5/5 requirements ✅ complete
 **Phase 3:** 0/6 requirements
 
 ---
 
 ## Recent Activity
 
-- 2026-04-05: Phase 2 plans written (02-01 and 02-02). Covers node-cron refactor and Render deployment. Ready for execution.
+- 2026-04-06: Phase 2 complete. Live at https://coldestplaceonearth.onrender.com. 5003 stations (SYNOP+METAR+EC). Coldest: Vostok Station -63.8°C. Cache-Control headers confirmed. Hourly cron active.
 - 2026-03-16: Phase 2 platform research complete. Cloudflare Workers free tier ruled out (subrequest cap + CPU limit). Render free tier selected as primary deployment target. PHASE2-VENDOR-COMPARISON.md written. STATE.md Phase 2 plan updated to reflect Render approach.
 - 2026-02-22: Phase 1 implementation verified complete against codebase. STATE.md updated to reflect reality.
 - 2026-02-08: Roadmap created, project planning phase complete.
@@ -208,7 +208,7 @@ None
 
 ### User Metrics
 
-- Site not yet deployed
+- Site deployed at https://coldestplaceonearth.onrender.com
 
 ---
 
