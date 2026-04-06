@@ -376,3 +376,96 @@ footer a:hover {
     font-size: 2.5rem;
   }
 }
+
+/* ============================================================
+   Interactive Map (Leaflet.js)
+   ============================================================ */
+
+.map-section {
+  height: 350px;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.map-pin {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--accent-colder);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+.map-pin--hero {
+  background: var(--accent-cold);
+  border: 2px solid #fff;
+  box-shadow: 0 0 10px rgba(100, 181, 246, 0.7);
+}
+
+.map-popup .leaflet-popup-content-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+
+.map-popup .leaflet-popup-tip {
+  background: var(--bg-card);
+}
+
+.map-popup .leaflet-popup-close-button {
+  color: var(--text-secondary);
+}
+
+.map-popup-content {
+  padding: 0.25rem 0;
+}
+
+.map-popup-hero-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-cold);
+  margin-bottom: 0.4rem;
+}
+
+.map-popup-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.map-popup-temp {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-cold);
+  margin-bottom: 0.3rem;
+}
+
+.map-popup-meta {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.place-card--highlighted {
+  box-shadow: 0 0 0 2px var(--accent-cold), 0 4px 20px rgba(100, 181, 246, 0.3);
+  transition: box-shadow 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .map-section {
+    height: 250px;
+  }
+}

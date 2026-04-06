@@ -71,6 +71,95 @@ function renderSourceRefLabel(source, sourceRef) {
 }
 
 // Fetch and display coldest places
+function buildPopupContent(station, isHero) {
+  const badge = renderSourceBadge(station.source, station.stationId, station.sourceRef);
+  const tempC = station.tempC.toFixed(1);
+  const tempF = ((station.tempC * 9 / 5) + 32).toFixed(1);
+  const heroTag = isHero ? '<span class="map-popup-hero-tag">Coldest</span>' : '';
+  return `
+    <div class="map-popup-content">
+      ${heroTag}
+      <div class="map-popup-name">${station.name}</div>
+      <div class="map-popup-temp">${tempC}°C / ${tempF}°F</div>
+      <div class="map-popup-meta">${badge}&nbsp;&bull; ${station.stationId}</div>
+    </div>
+  `;
+}
+
+function initMap(data) {
+  const { coldest, top5 } = data;
+
+  const allStations = [
+    Object.assign({}, coldest, { isHero: true }),
+    ...top5.map(s => Object.assign({}, s, { isHero: false })),
+  ];
+
+  const validStations = allStations.filter(s => !(s.latitude === 0 && s.longitude === 0));
+
+  if (validStations.length === 0) return;
+
+  const map = L.map('coldest-map', {
+    zoomControl: true,
+    scrollWheelZoom: false,
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors ' +
+      '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19,
+  }).addTo(map);
+
+  const heroIcon = L.divIcon({
+    html: '<span class="map-pin map-pin--hero"></span>',
+    className: '',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -10],
+  });
+
+  const regularIcon = L.divIcon({
+    html: '<span class="map-pin"></span>',
+    className: '',
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+    popupAnchor: [0, -8],
+  });
+
+  validStations.forEach(station => {
+    const icon = station.isHero ? heroIcon : regularIcon;
+    const marker = L.marker([station.latitude, station.longitude], { icon });
+
+    marker.bindPopup(buildPopupContent(station, station.isHero), {
+      className: 'map-popup',
+      maxWidth: 220,
+      minWidth: 160,
+    });
+
+    marker.on('click', () => {
+      const selector = station.isHero
+        ? `.coldest-card[data-station-id="${station.stationId}"]`
+        : `.place-card[data-station-id="${station.stationId}"]`;
+      const card = document.querySelector(selector);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('place-card--highlighted');
+        setTimeout(() => card.classList.remove('place-card--highlighted'), 1500);
+      }
+    });
+
+    marker.addTo(map);
+  });
+
+  if (validStations.length === 1) {
+    map.setView([validStations[0].latitude, validStations[0].longitude], 6);
+  } else {
+    const bounds = L.latLngBounds(validStations.map(s => [s.latitude, s.longitude]));
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+  }
+}
+
 async function loadColdestPlaces() {
   const app = document.getElementById('app');
 
@@ -85,6 +174,7 @@ async function loadColdestPlaces() {
     
     // Render the UI
     app.innerHTML = renderUI(data);
+    initMap(data);  // must be called after innerHTML — map container is injected by renderUI()
   } catch (error) {
     console.error('Failed to load data:', error);
     app.innerHTML = `
@@ -107,7 +197,7 @@ function renderUI(data) {
   const cRefLabel = renderSourceRefLabel(cSource, coldest.sourceRef);
 
   return `
-    <div class="coldest-card">
+    <div class="coldest-card" data-station-id="${coldest.stationId}">
       <h2>Coldest Place Right Now</h2>
       <div class="temperature">${formatTemp(coldest.tempC)}</div>
       <div class="location-name">${coldest.name}</div>
@@ -133,6 +223,8 @@ function renderUI(data) {
       </div>
     </div>
 
+    <div id="coldest-map" class="map-section" aria-label="Map showing coldest locations"></div>
+
     <div class="stats">
       <p>Scanned ${totalStations.toLocaleString()} weather stations globally</p>
       <p>Last updated: ${formatTimestamp(lastUpdated)}</p>
@@ -147,7 +239,7 @@ function renderPlaceCard(place, rank) {
   const refLabel = renderSourceRefLabel(source, place.sourceRef);
 
   return `
-    <div class="place-card">
+    <div class="place-card" data-station-id="${place.stationId}">
       <div class="place-card-left">
         <div class="place-rank">#${rank}</div>
         <div class="place-info">
