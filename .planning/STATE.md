@@ -141,17 +141,38 @@ None — blocked by Phase 2 completion
 
 - ⛔ Phase 2 must complete before Phase 3 can start
 
----
+### Phase 4: Interactive Map
 
-## Overall Progress
+**Status:** 🔵 Planned — ready to execute
+**Progress:** 0% (0/1 plan executed)
+
+#### Decisions (from discuss session)
+- Library: Leaflet.js via CDN (no API key, OpenStreetMap tiles)
+- Pins: 6 total — coldest hero (cyan DivIcon) + top 5
+- Placement: below `.top5-section`, above `.stats`
+- Click: scroll to corresponding `.place-card` + 1.5s highlight
+
+#### Plans
+- `04-01-PLAN.md` — CDN setup, `initMap()`, popup, highlight (3 files: index.html, app.js, style.css)
+
+#### Plan Checker Result
+PASS (HIGH confidence) · FLAG LOW: `overflow: hidden` on `.map-section` may clip popups near top edge — executor can replace with `clip-path: inset(0 round 12px)` if visually unacceptable.
+
+#### Blockers
+None — pure frontend, ready to execute
+
+---
 
 **Phase 1:** 12/20 complete, 8/20 partial — functionally done
 **Phase 2:** 5/5 requirements ✅ complete
 **Phase 3:** 0/6 requirements
+**Phase 4:** 0/1 plans — planned, ready to execute
 
 ---
 
 ## Recent Activity
+
+- 2026-04-06: Phase 4 planned. Interactive map using Leaflet.js via CDN, 6 pins (hero + top 5), CartoDB Dark Matter tiles, popup + scroll-highlight interaction. CONTEXT.md, RESEARCH.md, 04-01-PLAN.md created. Plan checker: PASS HIGH. ADV-01 promoted from backlog to Phase 4 in ROADMAP.md.
 
 - 2026-04-06: Extended data provenance UI with source artifact references. Added `sourceRef?: string` to `Observation` type and propagated through the entire pipeline: SYNOP observations carry the bulletin filename (e.g. `smra12345.txt`, linked to the actual file on `tgftp.nws.noaa.gov`); METAR observations carry `metars.cache.csv.gz` (linked to the NOAA cache file); EC observations carry the station's `weather.gc.ca` past-conditions page URL. Backend: `types.ts`, `synop-decoder.ts`, `fetcher-synop.ts`, `fetcher-combined.ts`, `fetcher-ec-hourly.ts`. Frontend: `app.js` renders the artifact as a monospace linked label in the source row; `style.css` adds `.source-ref-label`.
 - 2026-04-06: Added data provenance UI (unplanned improvement). Each top-5 card and the hero card now shows: a colour-coded clickable source badge (METAR/SYNOP/EC/ISD) that deep-links to the actual feed, relative observation age ("2h ago" with full timestamp on hover), and station ID in monospace. Changes limited to `public/app.js` and `public/style.css` — no backend changes required. Source URLs: METAR → aviationweather.gov live METAR lookup; EC → weather.gc.ca past-conditions page; SYNOP/ISD → NOAA FTP bulletin directory.
