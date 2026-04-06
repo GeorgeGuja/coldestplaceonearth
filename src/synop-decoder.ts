@@ -25,6 +25,8 @@ export interface SynopObservation {
   temperature: number | null;
   latitude?: number;
   longitude?: number;
+  /** Bulletin filename this observation was decoded from (e.g. smra12345.txt) */
+  bulletinFile?: string;
 }
 
 const SynopMessageSchema = z.object({
@@ -181,7 +183,7 @@ const MAX_BULLETIN_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 /**
  * Parse entire SYNOP bulletin
  */
-export function parseSynopBulletin(bulletin: string): SynopObservation[] {
+export function parseSynopBulletin(bulletin: string, filename?: string): SynopObservation[] {
   const observations: SynopObservation[] = [];
   const lines = bulletin.split('\n');
 
@@ -217,7 +219,7 @@ export function parseSynopBulletin(bulletin: string): SynopObservation[] {
     // Decode the SYNOP message
     const obs = decodeSynopMessage(trimmed, bulletinTimestamp || undefined);
     if (obs && obs.temperature !== null) {
-      observations.push(obs);
+      observations.push({ ...obs, bulletinFile: filename });
     }
   }
 

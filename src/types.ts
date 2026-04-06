@@ -25,6 +25,8 @@ export interface Observation {
   name?: string;
   country?: string;
   source: 'METAR' | 'EC' | 'ISD' | 'SYNOP';
+  /** Direct reference to the source artifact (bulletin filename, CSV URL, or page URL) */
+  sourceRef?: string;
 }
 
 /**

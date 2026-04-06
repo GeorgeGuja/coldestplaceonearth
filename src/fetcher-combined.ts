@@ -42,6 +42,7 @@ export async function fetchAllObservations(): Promise<Observation[]> {
     allObservations.push(...uniqueMetarObs.map(obs => ({
       ...obs,
       source: 'METAR' as const,
+      sourceRef: 'https://aviationweather.gov/data/cache/metars.cache.csv.gz',
     })));
     
     console.log(`Added ${uniqueMetarObs.length} METAR observations (${metarObs.length - uniqueMetarObs.length} duplicates with SYNOP removed)`);

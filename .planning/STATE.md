@@ -38,7 +38,7 @@ progress:
 - DISP-01: ✅ Complete — `public/app.js` renders temperature at `font-size: 4rem` as the page's largest element.
 - DISP-02: ✅ Complete — `name` and `country` rendered in hero card and each top-5 entry. Fallback to `"${stationId} Station"` / `"Unknown"` for unenriched SYNOP stations.
 - DISP-03: ✅ Complete — Coordinates formatted to 2 decimal places with N/S/E/W suffixes. Caveat: SYNOP stations with failed ISD lookup show `0.00°N, 0.00°E`.
-- DISP-04: ✅ Complete — Observation timestamp shown per card; server last-updated timestamp shown in stats bar.
+- DISP-04: ✅ Complete — Observation timestamp shown per card as relative time ("2h ago") with full absolute timestamp on hover; data source attribution with deep-link to feed; source artifact reference (SYNOP bulletin filename, METAR CSV filename, EC page URL) shown inline and linked; server last-updated shown in stats bar.
 - DISP-05: ✅ Complete — `finder.ts` slices top 5; `app.js` renders all 5 with rank, name, coords, source, temp.
 - UX-01: ✅ Complete — Two responsive breakpoints at 768px and 375px; viewport meta tag present.
 - UX-02: ✅ Complete — Single-page, dark theme, no navigation chrome, minimal markup.
@@ -153,6 +153,8 @@ None — blocked by Phase 2 completion
 
 ## Recent Activity
 
+- 2026-04-06: Extended data provenance UI with source artifact references. Added `sourceRef?: string` to `Observation` type and propagated through the entire pipeline: SYNOP observations carry the bulletin filename (e.g. `smra12345.txt`, linked to the actual file on `tgftp.nws.noaa.gov`); METAR observations carry `metars.cache.csv.gz` (linked to the NOAA cache file); EC observations carry the station's `weather.gc.ca` past-conditions page URL. Backend: `types.ts`, `synop-decoder.ts`, `fetcher-synop.ts`, `fetcher-combined.ts`, `fetcher-ec-hourly.ts`. Frontend: `app.js` renders the artifact as a monospace linked label in the source row; `style.css` adds `.source-ref-label`.
+- 2026-04-06: Added data provenance UI (unplanned improvement). Each top-5 card and the hero card now shows: a colour-coded clickable source badge (METAR/SYNOP/EC/ISD) that deep-links to the actual feed, relative observation age ("2h ago" with full timestamp on hover), and station ID in monospace. Changes limited to `public/app.js` and `public/style.css` — no backend changes required. Source URLs: METAR → aviationweather.gov live METAR lookup; EC → weather.gc.ca past-conditions page; SYNOP/ISD → NOAA FTP bulletin directory.
 - 2026-04-06: Phase 2 complete. Live at https://coldestplaceonearth.onrender.com. 5003 stations (SYNOP+METAR+EC). Coldest: Vostok Station -63.8°C. Cache-Control headers confirmed. Hourly cron active.
 - 2026-03-16: Phase 2 platform research complete. Cloudflare Workers free tier ruled out (subrequest cap + CPU limit). Render free tier selected as primary deployment target. PHASE2-VENDOR-COMPARISON.md written. STATE.md Phase 2 plan updated to reflect Render approach.
 - 2026-02-22: Phase 1 implementation verified complete against codebase. STATE.md updated to reflect reality.

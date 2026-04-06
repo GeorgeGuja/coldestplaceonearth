@@ -117,6 +117,7 @@ export async function fetchECHourlyObservations(): Promise<Observation[]> {
             observationTime: data.timestamp,
             country: 'Canada',
             source: 'EC' as const,
+            sourceRef: `https://weather.gc.ca/past_conditions/index_e.html?station=${station.code}`,
           };
         }
         return null;

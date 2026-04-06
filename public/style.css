@@ -216,6 +216,120 @@ footer a:hover {
   opacity: 0.7;
 }
 
+/* Coldest card provenance row */
+.coldest-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  font-size: 0.82rem;
+  font-family: 'Courier New', monospace;
+}
+
+.prov-item {
+  opacity: 0.82;
+}
+
+.prov-sep {
+  opacity: 0.45;
+}
+
+.prov-age {
+  cursor: default;
+}
+
+.prov-source-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-underline-offset: 2px;
+  opacity: 0.82;
+}
+
+.prov-source-link:hover {
+  opacity: 1;
+  text-decoration-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Source badges */
+.place-card-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.place-source-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.source-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.source-badge:hover {
+  opacity: 0.75;
+}
+
+.source-badge-METAR {
+  background: rgba(79, 195, 247, 0.15);
+  color: #4fc3f7;
+  border: 1px solid rgba(79, 195, 247, 0.35);
+}
+
+.source-badge-SYNOP {
+  background: rgba(165, 214, 167, 0.15);
+  color: #a5d6a7;
+  border: 1px solid rgba(165, 214, 167, 0.35);
+}
+
+.source-badge-EC {
+  background: rgba(255, 204, 128, 0.15);
+  color: #ffcc80;
+  border: 1px solid rgba(255, 204, 128, 0.35);
+}
+
+.source-badge-ISD {
+  background: rgba(206, 147, 216, 0.15);
+  color: #ce93d8;
+  border: 1px solid rgba(206, 147, 216, 0.35);
+}
+
+.data-age {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.station-id-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.source-ref-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+  text-decoration: underline;
+  text-decoration-color: rgba(159, 168, 218, 0.4);
+  text-underline-offset: 2px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   h1 {
@@ -234,6 +348,14 @@ footer a:hover {
     flex-direction: column;
     text-align: center;
     gap: 1rem;
+  }
+
+  .place-card-left {
+    justify-content: center;
+  }
+
+  .place-source-row {
+    justify-content: center;
   }
 
   .place-rank {

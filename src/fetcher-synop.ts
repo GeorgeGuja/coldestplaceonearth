@@ -122,7 +122,7 @@ async function fetchBulletins(
     const results = await Promise.allSettled(
       chunk.map(async (file) => {
         const bulletin = await fetchBulletin(file);
-        return parseSynopBulletin(bulletin);
+        return parseSynopBulletin(bulletin, file);
       })
     );
 
@@ -272,6 +272,7 @@ async function enrichObservations(synopObs: SynopObservation[]): Promise<Observa
       name: metadata?.name || `Station ${synop.stationId}`,
       country: metadata?.country || 'Unknown',
       source: 'SYNOP',
+      sourceRef: synop.bulletinFile,
     };
     
     enriched.push(obs);

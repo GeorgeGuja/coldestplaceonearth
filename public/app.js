@@ -1,3 +1,75 @@
+// Source metadata for provenance display
+const SOURCE_INFO = {
+  METAR: { label: 'NOAA METAR', description: 'Aviation weather report — hourly ASOS/AWOS' },
+  SYNOP: { label: 'NOAA SYNOP', description: 'Surface synoptic bulletin (FM-12 format) via NOAA FTP' },
+  EC:    { label: 'Environment Canada', description: 'Past conditions — weather.gc.ca' },
+  ISD:   { label: 'NOAA ISD', description: 'Integrated Surface Database via NOAA FTP' },
+};
+
+function getSourceUrl(source, stationId, sourceRef) {
+  // If the backend gave us an exact ref, prefer it
+  if (sourceRef) {
+    switch (source) {
+      case 'SYNOP':
+      case 'ISD':
+        // sourceRef is a bulletin filename — link to the file on NOAA FTP
+        return `https://tgftp.nws.noaa.gov/data/raw/sm/${encodeURIComponent(sourceRef)}`;
+      case 'EC':
+      case 'METAR':
+        // sourceRef is already a full URL
+        return sourceRef;
+    }
+  }
+  // Fallback: derive from source + stationId
+  switch (source) {
+    case 'METAR':
+      return `https://aviationweather.gov/metar/data/?ids=${encodeURIComponent(stationId)}&hours=1&order=id,-obs&sep=true`;
+    case 'EC':
+      return `https://weather.gc.ca/past_conditions/index_e.html?station=${encodeURIComponent(stationId.toLowerCase())}`;
+    case 'SYNOP':
+    case 'ISD':
+      return 'https://tgftp.nws.noaa.gov/data/raw/sm/';
+    default:
+      return null;
+  }
+}
+
+function getRelativeTime(isoString) {
+  const diffMs = Date.now() - new Date(isoString).getTime();
+  const diffMins = Math.round(diffMs / 60000);
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const h = Math.floor(diffMins / 60);
+  const m = diffMins % 60;
+  if (h < 24) return m > 0 ? `${h}h ${m}m ago` : `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function renderSourceBadge(source, stationId, sourceRef) {
+  const info = SOURCE_INFO[source] || { label: source, description: '' };
+  const url = getSourceUrl(source, stationId, sourceRef);
+  if (url) {
+    return `<a class="source-badge source-badge-${source}" href="${url}" target="_blank" rel="noopener" title="${info.description}">${info.label} ↗</a>`;
+  }
+  return `<span class="source-badge source-badge-${source}" title="${info.description}">${info.label}</span>`;
+}
+
+function renderSourceRefLabel(source, sourceRef) {
+  if (!sourceRef) return '';
+  let label = '';
+  if (source === 'SYNOP' || source === 'ISD') {
+    // Show just the filename, linked
+    label = sourceRef;
+    const url = `https://tgftp.nws.noaa.gov/data/raw/sm/${encodeURIComponent(sourceRef)}`;
+    return `<a class="source-ref-label" href="${url}" target="_blank" rel="noopener" title="Raw bulletin file on NOAA FTP">${label}</a>`;
+  }
+  if (source === 'METAR') {
+    label = 'metars.cache.csv.gz';
+    return `<a class="source-ref-label" href="${sourceRef}" target="_blank" rel="noopener" title="NOAA METAR cache file">${label}</a>`;
+  }
+  return '';
+}
+
 // Fetch and display coldest places
 async function loadColdestPlaces() {
   const app = document.getElementById('app');
@@ -27,6 +99,12 @@ async function loadColdestPlaces() {
 
 function renderUI(data) {
   const { coldest, top5, totalStations, lastUpdated } = data;
+  const cSource = coldest.source || 'METAR';
+  const cSourceInfo = SOURCE_INFO[cSource] || { label: cSource, description: '' };
+  const cSourceUrl = getSourceUrl(cSource, coldest.stationId, coldest.sourceRef);
+  const cRelTime = getRelativeTime(coldest.observationTime);
+  const cFullTime = formatTimestamp(coldest.observationTime);
+  const cRefLabel = renderSourceRefLabel(cSource, coldest.sourceRef);
 
   return `
     <div class="coldest-card">
@@ -34,14 +112,17 @@ function renderUI(data) {
       <div class="temperature">${formatTemp(coldest.tempC)}</div>
       <div class="location-name">${coldest.name}</div>
       <div class="location-details">${coldest.country}</div>
-      <div class="coordinates">
-        ${formatCoordinates(coldest.latitude, coldest.longitude)}
-      </div>
-      <div class="coordinates" style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.7;">
-        Station: ${coldest.stationId} • Source: ${coldest.source || 'METAR'}
-      </div>
-      <div class="coordinates" style="margin-top: 0.25rem; font-size: 0.8rem; opacity: 0.6;">
-        Observed: ${formatTimestamp(coldest.observationTime)}
+      <div class="coordinates">${formatCoordinates(coldest.latitude, coldest.longitude)}</div>
+      <div class="coldest-provenance">
+        <span class="prov-item">Station ${coldest.stationId}</span>
+        <span class="prov-sep">·</span>
+        <span class="prov-item prov-age" title="${cFullTime}">Observed ${cRelTime}</span>
+        <span class="prov-sep">·</span>
+        ${cSourceUrl
+          ? `<a class="prov-item prov-source-link" href="${cSourceUrl}" target="_blank" rel="noopener" title="${cSourceInfo.description}">${cSourceInfo.label} ↗</a>`
+          : `<span class="prov-item prov-source-link">${cSourceInfo.label}</span>`
+        }
+        ${cRefLabel ? `<span class="prov-sep">·</span><span class="prov-item">${cRefLabel}</span>` : ''}
       </div>
     </div>
 
@@ -60,18 +141,23 @@ function renderUI(data) {
 }
 
 function renderPlaceCard(place, rank) {
+  const source = place.source || 'METAR';
+  const relTime = getRelativeTime(place.observationTime);
+  const fullTime = formatTimestamp(place.observationTime);
+  const refLabel = renderSourceRefLabel(source, place.sourceRef);
+
   return `
     <div class="place-card">
-      <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+      <div class="place-card-left">
         <div class="place-rank">#${rank}</div>
         <div class="place-info">
           <div class="place-name">${place.name}</div>
-          <div class="place-location">${place.country} • ${place.stationId} • ${place.source || 'METAR'}</div>
-          <div class="place-location" style="font-size: 0.8rem; margin-top: 0.25rem;">
-            ${formatCoordinates(place.latitude, place.longitude)}
-          </div>
-          <div class="place-location" style="font-size: 0.75rem; margin-top: 0.15rem; opacity: 0.6;">
-            Observed: ${formatTimestamp(place.observationTime)}
+          <div class="place-location">${place.country} · ${formatCoordinates(place.latitude, place.longitude)}</div>
+          <div class="place-source-row">
+            ${renderSourceBadge(source, place.stationId, place.sourceRef)}
+            <span class="data-age" title="${fullTime}">${relTime}</span>
+            <span class="station-id-label">· ${place.stationId}</span>
+            ${refLabel ? `<span class="station-id-label">· ${refLabel}</span>` : ''}
           </div>
         </div>
       </div>
