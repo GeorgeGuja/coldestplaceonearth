@@ -160,12 +160,66 @@ Users can observe:
 - Enhanced KV data model (top 5 locations, extended metadata)
 - Social share metadata (Open Graph tags)
 
+## Phase 4: Interactive Map
+
+**Goal:** Add an interactive map below the top-5 list that pins all displayed coldest locations, giving users spatial context for where these extreme places are on Earth
+
+**Duration:** 1–2 days
+
+**Delivered Value:** Users can instantly see *where* the coldest places are geographically — a pin per station with a popup showing name, temperature, source badge, and a click interaction that scrolls the corresponding top-5 card into view
+
+### Requirements Included
+
+**Map Feature (1):**
+- ADV-01: Interactive map showing top-5 + coldest hero locations (6 pins total)
+
+### Decision Log
+
+| Decision | Choice | Rationale |
+|---|---|---|
+| Map library | Leaflet.js | Open source, no API key, tiles from OpenStreetMap — zero cost, zero rate limits |
+| Pins shown | Top 5 + coldest hero (6 total) | Matches what the UI already displays; hero pin styled differently |
+| Map placement | Below top-5 list | Natural reading flow: list → map |
+| Pin interaction | Click scrolls to corresponding card | Keeps user in context without opening a new view |
+
+### Success Criteria
+
+Users can observe:
+
+1. **Map renders on load:** An interactive map appears below the top-5 list on both desktop and mobile with 6 labelled pins — one for the coldest hero (distinct style), one for each remaining top-5 station
+
+2. **Pins are informative:** Clicking any pin opens a Leaflet popup showing station name, temperature, and source badge. The popup matches the visual style of the site (dark card aesthetic)
+
+3. **Cross-linking works:** Clicking a pin scrolls the corresponding top-5 card into view and briefly highlights it
+
+4. **Mobile works:** Map is usable on 375px viewport — correct aspect ratio, no overflow, touch pan/zoom enabled
+
+5. **No API key required:** Site loads without any API keys or external account setup. Map tiles load from OpenStreetMap CDN
+
+6. **Graceful degradation:** If coordinates are missing or zero for a station, that pin is silently omitted — map renders the remaining valid pins
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 04-01-PLAN.md — Add Leaflet CDN, initMap(), map container, DivIcon pins, popup dark theme, card highlight
+
+### Key Deliverables
+
+- Leaflet.js loaded via CDN in `index.html` (no bundler step)
+- Map `<div>` added to `index.html` below `.top5-section`
+- Map section styles in `style.css` (height, border, dark theme tile filter)
+- `initMap(top5, coldest)` function in `app.js` — called after `renderUI`
+- Hero pin uses distinct marker colour (blue/cyan to match `--accent-cold`)
+- Popup HTML matches site card aesthetic (dark bg, monospace station ID, source badge)
+- Card highlight: `place-card--highlighted` CSS class, removed after 1.5s
+- Map auto-fits bounds to all pins (`fitBounds` with padding)
+
 ## Post-V1: Future Enhancements
 
 Not committed for v1, consider based on user feedback and metrics:
 
 ### Advanced Features (from v2 requirements)
-- **ADV-01:** Interactive map showing coldest location
+- **ADV-01:** ✅ Promoted to Phase 4
 - **ADV-02:** Shareable graphics for social media
 - **ADV-03:** "Compare to your city" feature with location detection
 - **ADV-04:** Streak counter for daily visits
@@ -261,6 +315,7 @@ Defines v1 launch readiness:
 |---------|------|---------|
 | 1.0 | 2026-02-08 | Initial roadmap created from requirements and research |
 | 1.1 | 2026-02-08 | Updated to use NOAA METAR/SYNOP data source after validation research |
+| 1.2 | 2026-04-06 | Added Phase 4: Interactive Map — promoted ADV-01 from backlog |
 
 ---
 
