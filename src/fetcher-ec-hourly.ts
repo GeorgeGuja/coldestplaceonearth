@@ -120,7 +120,8 @@ export async function fetchECHourlyObservations(): Promise<Observation[]> {
       })
     );
 
-    observations.push(...results.filter((obs): obs is Observation => obs !== null));
+    const validObs = results.filter((obs): obs is NonNullable<typeof obs> => obs !== null);
+    observations.push(...(validObs as Observation[]));
   }
 
   console.log(`Fetched ${observations.length} Environment Canada hourly observations`);

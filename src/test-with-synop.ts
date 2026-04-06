@@ -38,7 +38,7 @@ async function testWithSynop() {
     }
     
     console.log(`\nTotal stations: ${result.totalStations}`);
-    console.log(`Last updated: ${result.lastUpdated}`);
+    console.log(`Last updated: ${new Date().toISOString()}`);
     
   } catch (error) {
     console.error('Test failed:', error);

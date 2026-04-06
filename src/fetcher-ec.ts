@@ -106,10 +106,18 @@ export async function fetchECObservations(): Promise<ECObservation[]> {
         if (!response.ok) return null;
 
         const xml = await response.text();
-        const result = await parseXML(xml);
+
+        interface SwobElement { $?: { name?: string; value?: string } }
+        interface ParsedSwob {
+          om_Observation?: {
+            om_result?: Array<{ elements?: Array<{ element?: SwobElement[] }> }>;
+            om_resultTime?: Array<{ TimeInstant?: Array<{ timePosition?: string[] }> }>;
+          };
+        }
+        const result = await parseXML(xml) as ParsedSwob;
 
         // Extract temperature from SWOB-ML format
-        const elements = result?.om_Observation?.om_result?.[0]?.elements?.[0]?.element || [];
+        const elements: SwobElement[] = result?.om_Observation?.om_result?.[0]?.elements?.[0]?.element || [];
         let tempC: number | null = null;
         let observationTime = result?.om_Observation?.om_resultTime?.[0]?.TimeInstant?.[0]?.timePosition?.[0] || new Date().toISOString();
 
@@ -138,7 +146,8 @@ export async function fetchECObservations(): Promise<ECObservation[]> {
     });
 
     const results = await Promise.all(promises);
-    observations.push(...results.filter((obs): obs is ECObservation => obs !== null));
+    const validECObs = results.filter((obs): obs is NonNullable<typeof obs> => obs !== null);
+    observations.push(...(validECObs as ECObservation[]));
 
     if ((i / BATCH_SIZE) % 10 === 0) {
       console.log(`Processed ${Math.min(i + BATCH_SIZE, stations.length)}/${stations.length} stations, found ${observations.length} observations`);
