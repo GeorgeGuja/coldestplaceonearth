@@ -85,14 +85,13 @@ Users can observe:
 
 **Platform Decision:** Render free tier (see `.planning/research/PHASE2-VENDOR-COMPARISON.md`)
 - Cloudflare Workers free: ❌ blocked (50 subrequest cap, 10ms CPU)
-- **Render free: ✅ recommended** — deploy server.ts as-is; add node-cron for hourly refresh; UptimeRobot keepalive
+- **Render free: ✅ recommended** — deploy server.ts as-is; add node-cron for hourly refresh
 
 ### Requirements Included
 
-**Infrastructure (6):**
+**Infrastructure (5):**
 - INFRA-01: Deploy to Render free tier (Node.js web service)
 - INFRA-02: Add node-cron inside server.ts for hourly background data refresh + in-memory result cache
-- INFRA-03: Set up UptimeRobot free HTTP monitor (ping every 14 min to prevent 15-min idle spin-down)
 - INFRA-04: Verify hourly cron executes successfully in production (confirm in Render logs)
 - INFRA-05: Add Cache-Control: public, max-age=60 header on GET /api/coldest responses
 - INFRA-06: HTTPS via *.onrender.com (provided automatically by Render, no custom domain needed)
@@ -105,7 +104,7 @@ Users can observe:
 
 2. **Global performance:** API responds in <100ms when cache is warm (served from in-memory cachedResult); homepage static files load in <2s
 
-3. **Reliability:** Site stays up 24/7 due to UptimeRobot keepalive pings; no unexpected spin-downs
+3. **Reliability:** Site stays up via Render's managed infrastructure; HTTPS available immediately
 
 4. **Live domain:** Users can access site at https://{name}.onrender.com via HTTPS
 
@@ -117,7 +116,6 @@ Users can observe:
 - `Cache-Control: public, max-age=60` header on /api/coldest
 - `render.yaml` at project root (build/start/plan config)
 - Render web service connected to GitHub repo with automatic deploys
-- UptimeRobot HTTP(s) monitor pinging /api/coldest every 14 minutes
 
 ## Phase 3: Enhanced Experience - Competitive Differentiators
 
