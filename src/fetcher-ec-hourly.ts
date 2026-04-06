@@ -59,13 +59,16 @@ async function scrapeECStation(stationCode: string): Promise<ECHourlyScrapeResul
     const html = await response.text();
     const $ = load(html);
 
-    // Find the most recent temperature reading
-    // Temperature is in a <b> tag within class="highLow" or "lowTemp"
-    const tempElement = $('td.metricData b').first();
-    
-    if (tempElement.length > 0) {
-      const tempText = tempElement.text().trim();
-      // Extract temperature from format like "-49 (-49.3)" or "-49"
+    // Find the most recent temperature reading.
+    // EC past-conditions table uses headers="header3m" for the Temperature (°C) column.
+    // Temperature cells contain plain text like "-25 (-25.4)" — no <b> tag.
+    // Wind chill cells ARE bolded, so `$('td.metricData b')` accidentally returns
+    // wind chill instead of air temperature. Target the column by its stable headers attribute.
+    const tempCell = $('td[headers="header3m"]').first();
+
+    if (tempCell.length > 0) {
+      const tempText = tempCell.text().trim();
+      // Extract the first number from text like "-25 (-25.4)" or "-49"
       const match = tempText.match(/(-?\d+\.?\d*)/);
       
       if (match) {
