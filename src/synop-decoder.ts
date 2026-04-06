@@ -131,6 +131,13 @@ export function decodeSynopMessage(
  * Format: SMRA10 RUHB 090000
  * - 09 = day of month
  * - 0000 = hour/minute UTC
+ *
+ * SYNOP headers only encode the day-of-month, not the full date. We reconstruct
+ * the full date using the current UTC year and month, then check whether the
+ * result is in the future. If the reconstructed date is more than 1 hour ahead
+ * of now, the bulletin must belong to the *previous* calendar month (e.g. a
+ * bulletin from day 26 fetched on the 5th of the next month). We roll back one
+ * month in that case.
  */
 export function parseBulletinTimestamp(header: string): Date | null {
   try {
@@ -144,17 +151,32 @@ export function parseBulletinTimestamp(header: string): Date | null {
     const hour = parseInt(timeStr.slice(2, 4), 10);
     const minute = parseInt(timeStr.slice(4, 6), 10);
 
-    // Use current year and month
+    if (day < 1 || day > 31 || hour > 23 || minute > 59) return null;
+
     const now = new Date();
-    const timestamp = new Date(
+    let timestamp = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), day, hour, minute)
     );
+
+    // If the timestamp is more than 1 hour in the future, the bulletin day
+    // belongs to the previous month (e.g. day=26 fetched on the 5th of the
+    // next month). Roll back one month.
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    if (timestamp.getTime() > now.getTime() + ONE_HOUR_MS) {
+      timestamp = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, day, hour, minute)
+      );
+    }
 
     return timestamp;
   } catch (error) {
     return null;
   }
 }
+
+// SYNOP bulletins are issued every 3-6 hours. Reject any bulletin older than
+// this threshold — stale files can linger on NOAA's server indefinitely.
+const MAX_BULLETIN_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Parse entire SYNOP bulletin
@@ -167,6 +189,15 @@ export function parseSynopBulletin(bulletin: string): SynopObservation[] {
   let bulletinTimestamp: Date | null = null;
   if (lines.length > 0) {
     bulletinTimestamp = parseBulletinTimestamp(lines[0]);
+  }
+
+  // Discard the entire bulletin if its timestamp is too old. NOAA sometimes
+  // leaves stale bulletin files on the server for days or weeks.
+  if (bulletinTimestamp !== null) {
+    const ageMs = Date.now() - bulletinTimestamp.getTime();
+    if (ageMs > MAX_BULLETIN_AGE_MS) {
+      return [];
+    }
   }
 
   // Process each line looking for SYNOP messages

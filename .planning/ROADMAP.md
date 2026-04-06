@@ -75,49 +75,49 @@ Users can observe:
 - Error handling with fallback to cached data
 - README with setup instructions
 
-## Phase 2: Cloudflare Migration - Production Infrastructure
+## Phase 2: Production Deployment
 
-**Goal:** Migrate validated local MVP to Cloudflare infrastructure with automated updates and global edge delivery
+**Goal:** Deploy the validated local MVP to Render free tier with automated hourly updates and zero migration cost
 
-**Duration:** 1-2 weeks
+**Duration:** 1-2 hours of setup
 
-**Delivered Value:** Production-ready website on coldestplace.com with automatic hourly updates, global <50ms response times, and zero hosting costs
+**Delivered Value:** Production website on *.onrender.com with automatic hourly data refreshes, HTTPS, and a keepalive monitor to prevent idle spin-down. Zero code migration required.
+
+**Platform Decision:** Render free tier (see `.planning/research/PHASE2-VENDOR-COMPARISON.md`)
+- Cloudflare Workers free: ❌ blocked (50 subrequest cap, 10ms CPU)
+- **Render free: ✅ recommended** — deploy server.ts as-is; add node-cron for hourly refresh; UptimeRobot keepalive
 
 ### Requirements Included
 
 **Infrastructure (6):**
-- INFRA-01: Deploy frontend to Cloudflare Pages
-- INFRA-02: Deploy backend to Cloudflare Workers
-- INFRA-03: Implement Cloudflare KV for data storage
-- INFRA-04: Set up scheduled cron jobs for automatic updates (every 1-3 hours matching METAR update frequency)
-- INFRA-05: Implement edge caching with proper Cache-Control headers
-- INFRA-06: Set up monitoring for NOAA FTP availability and Worker execution
+- INFRA-01: Deploy to Render free tier (Node.js web service)
+- INFRA-02: Add node-cron inside server.ts for hourly background data refresh + in-memory result cache
+- INFRA-03: Set up UptimeRobot free HTTP monitor (ping every 14 min to prevent 15-min idle spin-down)
+- INFRA-04: Verify hourly cron executes successfully in production (confirm in Render logs)
+- INFRA-05: Add Cache-Control: public, max-age=60 header on GET /api/coldest responses
+- INFRA-06: HTTPS via *.onrender.com (provided automatically by Render, no custom domain needed)
 
 ### Success Criteria
 
 Users can observe:
 
-1. **Automatic freshness:** Visiting site shows "Last updated X minutes ago" timestamp that updates every hour without manual intervention, proving cron jobs work
+1. **Automatic freshness:** "Last updated X minutes ago" timestamp advances every hour without manual intervention, confirmed in Render dashboard logs
 
-2. **Global performance:** Users in US, Europe, and Asia all experience <2 second page load times (measure via WebPageTest from 3 continents), proving edge caching works
+2. **Global performance:** API responds in <100ms when cache is warm (served from in-memory cachedResult); homepage static files load in <2s
 
-3. **Reliability:** Site remains available 24/7 for 1 week with no downtime or "data unavailable" messages, proving infrastructure stability
+3. **Reliability:** Site stays up 24/7 due to UptimeRobot keepalive pings; no unexpected spin-downs
 
-4. **Live domain:** Users can access site at coldestplace.com (or similar) via HTTPS, proving successful Cloudflare Pages deployment
+4. **Live domain:** Users can access site at https://{name}.onrender.com via HTTPS
 
-5. **Operational visibility:** Admin dashboard (Cloudflare Analytics) shows hourly Worker executions completing successfully, proving cron jobs and NOAA FTP access work reliably
+5. **Operational visibility:** Render dashboard logs show "[cron] Hourly refresh scheduled" on startup and "[cron] Refresh complete" entries each hour
 
 ### Key Deliverables
 
-- Astro site deployed to Cloudflare Pages
-- Cloudflare Worker with METAR CSV download and parsing logic
-- Scheduled Worker with cron triggers (every 1-3 hours)
-- KV namespace with versioned data model (current + previous for rollback)
-- Cache API integration for aggressive caching
-- Workers Analytics setup
-- NOAA FTP availability monitoring
-- Custom domain configuration
-- Deployment documentation
+- `node-cron` installed; server.ts refactored with in-memory cachedResult + hourly cron + startup pre-warm
+- `Cache-Control: public, max-age=60` header on /api/coldest
+- `render.yaml` at project root (build/start/plan config)
+- Render web service connected to GitHub repo with automatic deploys
+- UptimeRobot HTTP(s) monitor pinging /api/coldest every 14 minutes
 
 ## Phase 3: Enhanced Experience - Competitive Differentiators
 

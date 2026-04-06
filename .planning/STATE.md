@@ -1,13 +1,29 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 02
+status: executing
+last_updated: "2026-04-06T01:33:10.530Z"
+progress:
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 0
+  percent: 0
+---
+
 # Project State: ColdestPlace
 
-**Last Updated:** 2026-02-22
-**Current Phase:** Phase 1 - Local MVP (Complete)
-**Overall Status:** 🟢 Phase 1 Done — Ready for Phase 2
+**Last Updated:** 2026-04-05
+**Current Phase:** 02
+**Overall Status:** 🟡 Phase 2 Ready — Plans written, execution pending
 
 ## Phase Status
 
 ### Phase 1: Local MVP - Proof of Concept
-**Status:** 🟢 Complete
+
+**Status:** Executing Phase 02
 **Progress:** 12 complete, 8 partial, 0 not started (out of 20)
 **Target Completion:** Done
 
@@ -43,47 +59,67 @@
 - [x] Development velocity — `npm run dev` + `/api/coldest` endpoint; four manual test scripts
 
 #### Active Work
+
 None — phase complete
 
 #### Blockers
+
 None
 
 ---
 
-### Phase 2: Cloudflare Migration - Production Infrastructure
+### Phase 2: Production Deployment
+
 **Status:** 🔵 Not Started
 **Progress:** 0% (0/6 requirements)
 **Target Completion:** TBD
 
+**Platform Decision:** Render free tier (revised from original Cloudflare plan — see `.planning/research/PHASE2-VENDOR-COMPARISON.md`)
+
+- Cloudflare Workers free: ❌ blocked (50 subrequest cap, 10ms CPU — both violated by our cron job)
+- Cloudflare Workers paid ($5/mo): ✅ viable but requires full Workers migration (3–5 days) and costs money
+- **Render free: ✅ recommended** — deploy `server.ts` as-is, add `node-cron` for hourly refresh, use UptimeRobot keepalive to prevent 15-min idle spin-down. Zero migration cost, ships in 1–2 hours.
+- Deno Deploy free: ⚠️ theoretically viable but untested; in-memory caches need KV migration; moderate effort
+
 #### Requirements Status
-- INFRA-01: ⬜ Not Started — Deploy frontend to Cloudflare Pages
-- INFRA-02: ⬜ Not Started — Deploy backend to Cloudflare Workers
-- INFRA-03: ⬜ Not Started — Cloudflare KV for data storage
-- INFRA-04: ⬜ Not Started — Scheduled cron for automatic updates
-- INFRA-05: ⬜ Not Started — Edge caching with Cache-Control headers
-- INFRA-06: ⬜ Not Started — Monitoring for NOAA FTP availability
+
+- INFRA-01: ⬜ Not Started — Deploy to Render free tier (web service)
+- INFRA-02: ⬜ Not Started — Configure `node-cron` inside server for hourly refresh (replaces Cloudflare cron trigger)
+- INFRA-03: ⬜ Not Started — Set up UptimeRobot free monitor (keepalive ping every 14 min)
+- INFRA-04: ⬜ Not Started — Verify hourly cron executes successfully in production
+- INFRA-05: ⬜ Not Started — Configure Cache-Control headers on `/api/coldest` (60s max-age)
+- INFRA-06: ⬜ Not Started — Set up domain + HTTPS (Render provides free TLS on custom domains)
 
 #### Success Criteria Status
-- [ ] Automatic freshness (hourly cron verified)
-- [ ] Global performance (<2s from 3 continents)
-- [ ] Reliability (99.9% uptime over 1 week)
-- [ ] Live domain (HTTPS access working)
-- [ ] Operational visibility (monitoring dashboard)
+
+- [ ] Automatic freshness (hourly cron verified, "last updated" timestamp auto-advances)
+- [ ] Global performance (<2s response time for API + static assets)
+- [ ] Reliability (site stays up for 1 week; no unexpected spin-downs with keepalive active)
+- [ ] Live domain (HTTPS access at custom domain or `*.onrender.com`)
+- [ ] Operational visibility (Render dashboard shows cron execution logs)
 
 #### Active Work
-None
+
+3 plans ready for execution:
+
+- `02-01-PLAN.md` — Install node-cron, refactor server.ts (background cache + cron + Cache-Control), add render.yaml
+- `02-02-PLAN.md` — Commit code, deploy to Render, verify live URL
+- `02-03-PLAN.md` — Set up UptimeRobot keepalive, verify cron in Render logs
 
 #### Blockers
-- TECH-04 partial: `server.ts`, `fetcher.ts`, `fetcher-ec.ts` must be refactored to remove `node:fs`, `node:zlib`, `node:path`, `node:http` before Workers deployment. The remaining codebase is already CF-compatible.
+
+None — Render deployment requires zero refactoring of existing code.
 
 ---
 
 ### Phase 3: Enhanced Experience - Competitive Differentiators
+
 **Status:** 🔵 Not Started
 **Progress:** 0% (0/6 requirements)
 **Target Completion:** TBD
 
 #### Requirements Status
+
 - ENH-01: ⬜ Not Started — °C/°F toggle (blocked by Phase 2)
 - ENH-02: ⬜ Not Started — Visual temperature context (blocked by Phase 2)
 - ENH-03: ⬜ Not Started — Historical context (blocked by Phase 2)
@@ -92,6 +128,7 @@ None
 - ENH-06: ⬜ Not Started — Sunrise/sunset times (blocked by Phase 2)
 
 #### Success Criteria Status
+
 - [ ] Intuitive comparisons (visual context displayed)
 - [ ] Visual richness (photos integrated)
 - [ ] Weather storytelling (conditions + narrative)
@@ -99,9 +136,11 @@ None
 - [ ] Unit flexibility (°C/°F toggle persists)
 
 #### Active Work
+
 None — blocked by Phase 2 completion
 
 #### Blockers
+
 - ⛔ Phase 2 must complete before Phase 3 can start
 
 ---
@@ -116,30 +155,33 @@ None — blocked by Phase 2 completion
 
 ## Recent Activity
 
+- 2026-04-05: Phase 2 plans written (02-01 through 02-03). Covers node-cron refactor, Render deployment, UptimeRobot keepalive. Ready for execution.
+- 2026-03-16: Phase 2 platform research complete. Cloudflare Workers free tier ruled out (subrequest cap + CPU limit). Render free tier selected as primary deployment target. PHASE2-VENDOR-COMPARISON.md written. STATE.md Phase 2 plan updated to reflect Render approach.
 - 2026-02-22: Phase 1 implementation verified complete against codebase. STATE.md updated to reflect reality.
 - 2026-02-08: Roadmap created, project planning phase complete.
 
 ## Next Steps
 
-1. Begin Phase 2: Cloudflare Migration
-2. Refactor `fetcher.ts` — replace `node:zlib` + `node:fs` file cache with in-memory cache; use `fetch()` + `DecompressionStream` for gzip
-3. Refactor `fetcher-ec.ts` — replace file cache with in-memory; remove `node:fs`/`node:path`/`node:util`
-4. Replace `server.ts` with a Cloudflare Worker entry point (`export default { fetch() }`)
-5. Set up Cloudflare KV namespace and write data model
-6. Configure Wrangler and deploy to Cloudflare Pages + Workers
-7. Add cron trigger for hourly updates (INFRA-04)
+1. **Begin Phase 2: Render Deployment** (see `.planning/research/PHASE2-VENDOR-COMPARISON.md` for full decision rationale)
+2. Add `node-cron` to `package.json` and wire hourly refresh into `server.ts` (replaces manual cron trigger)
+3. Create `render.yaml` for Render infrastructure-as-code (optional but good practice)
+4. Connect GitHub repo to Render, deploy as Node.js web service
+5. Register custom domain + configure TLS on Render
+6. Set up UptimeRobot free monitor (HTTP ping every 14 min → keeps service warm)
+7. Verify `GET /api/coldest` responds fast from live URL; confirm hourly updates fire in Render logs
 
 ## Risks & Issues
 
 ### Active Risks
 
-1. **UX-03 cold start latency** (MEDIUM) — First API call after server restart takes 20-60s due to SYNOP bulletin fetching across 80+ files. No background pre-warming exists. Mitigation for Phase 2: Cloudflare cron job pre-populates KV so edge reads are always fast.
+1. **UX-03 cold start latency** (MEDIUM) — First API call after server restart takes 20-60s due to SYNOP bulletin fetching across 80+ files. No background pre-warming exists. Mitigation for Phase 2: add `node-cron` to run the full pipeline at startup + every hour so the result is always cached by the time users visit.
 
-2. **TECH-04 migration scope** (LOW) — Three files need Node.js API removal before Workers deployment. Scope is well-understood; the rest of the codebase is already compatible.
+2. **Render free spin-down** (LOW) — Free web services sleep after 15 min of no traffic. Mitigation: UptimeRobot free monitor pings every 14 min. Without it, first visitor after idle waits ~60s for spin-up.
 
 3. **DISP-02/DISP-03 metadata gaps** (LOW) — SYNOP stations not in `metadata.ts` display as `"Station XXXXX"` and may have zero coordinates if ISD lookup fails. Acceptable for Phase 1; worth improving in Phase 2 or 3.
 
 ### Active Issues
+
 None
 
 ---
@@ -148,6 +190,7 @@ None
 
 | Date | Decision | Rationale | Impact |
 |------|----------|-----------|--------|
+| 2026-03-16 | Use Render free tier for Phase 2 (not Cloudflare) | CF free: blocked by 50-subrequest cap + 10ms CPU limit. CF paid ($5/mo) works but costs money and requires full Workers migration. Render free: zero migration cost, ships in 1–2 hours, free forever with UptimeRobot keepalive. | Phase 2 scope dramatically reduced; no Workers migration needed |
 | 2026-02-08 | Use 3-phase roadmap (Local → Cloudflare → Enhanced) | Research shows Cloudflare constraints need validation before investment | Adds Phase 1 overhead but reduces Phase 2 risk |
 | 2026-02-08 | Include all 20 v1 requirements in roadmap scope | Aligns with user's v1 definition in REQUIREMENTS.md | Clear scope boundary for initial release |
 | 2026-02-08 | Use NOAA METAR + SYNOP (no API keys, public domain) | Free, reliable, no rate limits | SYNOP cold-region scope is intentional tradeoff for DATA-01/02 |
@@ -157,14 +200,17 @@ None
 ## Key Metrics
 
 ### Development Velocity
+
 - Phase 1: 12/20 requirements complete, 8/20 partial, 0 not started
 
 ### Quality Metrics
+
 - TypeScript strict mode: on
 - Known type errors in `fetcher-ec.ts` and `fetcher-ec-hourly.ts` (pre-existing, non-blocking)
 - No test framework; 4 manual integration test scripts
 
 ### User Metrics
+
 - Site not yet deployed
 
 ---
@@ -172,6 +218,7 @@ None
 *State tracked in real-time. Update after completing requirements or reaching milestones.*
 
 **Legend:**
+
 - 🔵 Not Started
 - 🟡 In Progress
 - 🟢 Complete

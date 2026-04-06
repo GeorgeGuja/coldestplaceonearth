@@ -337,3 +337,109 @@ Everything else is just making it pretty.
 - NOAA for maintaining public domain weather data
 - The GSD (Get Shit Done) framework for structured project planning
 - Every weather station operator reporting observations 24/7/365
+
+---
+
+## Part 2: Down the SYNOP Rabbit Hole (April 2026)
+
+*Phase 1 shipped. Then things got weird.*
+
+### Why METAR Wasn't Enough
+
+METAR solved the global-scan problem beautifully, but it has a blind spot: **airports**.
+
+Every station in the METAR feed is an airport or a major synoptic weather post. For most purposes this is fine — the world's actually cold places (Antarctic research stations, Siberian airports, Arctic outposts) do have METAR. But I wanted to be sure we weren't missing anything, and there's one category of station that METAR systematically under-represents: **remote inland Siberian stations**.
+
+Oymyakon and Verkhoyansk — the two places that trade the title of "coldest inhabited place on Earth" — have airports. They're in METAR. But dozens of smaller Russian stations at comparable latitudes don't. To reach them, you need **SYNOP FM-12 bulletins**.
+
+### What SYNOP Bulletins Look Like
+
+NOAA re-distributes WMO SYNOP bulletins at `https://tgftp.nws.noaa.gov/data/raw/sm/`. Each file is a short text document:
+
+```
+SMRA22 RUNW 051800 RRT
+AAXX 05181
+36278 42999 62801 10007 21114 38108 48468 54000 80002=
+```
+
+Line 1 is the **GTS bulletin header**. Line 2 is the `AAXX` section identifier and observation time. Lines 3+ are the actual FM-12 station reports — five-character groups encoding station ID, weather, temperature, pressure, and more.
+
+Decoding the temperature from `10007` is straightforward: the leading `1` means "temperature group", `0` means positive, `007` means 0.7 °C. From `11383`: leading `1`, sign `1` (negative), `383` = 38.3 → **-38.3 °C**.
+
+### The Timestamp Problem Nobody Warned Me About
+
+Here's where it got interesting.
+
+The GTS bulletin header timestamp — `051800` in the example above — encodes only **day-of-month, hour, and minute** in UTC. No month. No year. The WMO spec (Manual on the Global Telecommunication System, WMO No. 386) treats month and year as implicit: bulletins are assumed to be consumed within hours of issuance, so the current month is always the right month.
+
+NOAA's server doesn't honour that assumption. It leaves bulletin files on the server **indefinitely**. When I pulled `smra22.runw..txt` in April, I got this:
+
+```
+SMRA22 RUNW 260600
+AAXX 26061
+30157 42998 01503 11383 21416 30044 40375 58010=
+```
+
+Naively reconstructing the full date gives **April 26** — 21 days in the future. Clearly wrong. The bulletin is actually from **March 26** (the previous month), and it has been sitting on NOAA's server for 10 days.
+
+This bulletin reports station `30157` — **Mama Airport**, Mamsko-Chuysky District, Irkutsk Oblast, Russia — at **-38.3 °C**. That was a perfectly valid March reading for that latitude. But displayed in April it looked like the coldest place on Earth right now, which it absolutely was not.
+
+### The Fix: Two Guards, Not One
+
+**Guard 1 — Month rollback.** After reconstructing the date using the current UTC year and month, check whether the result is more than one hour in the future. If it is, the bulletin belongs to the previous calendar month — roll back one month. (JavaScript's `Date.UTC` handles the year boundary correctly: month index `-1` resolves to December of the prior year.)
+
+```typescript
+const ONE_HOUR_MS = 60 * 60 * 1000;
+if (timestamp.getTime() > now.getTime() + ONE_HOUR_MS) {
+  timestamp = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, day, hour, minute)
+  );
+}
+```
+
+The one-hour tolerance is deliberate: bulletins are sometimes pre-issued slightly ahead of their nominal observation time.
+
+**Guard 2 — Staleness rejection.** Even after the month rollback correctly dated the Mama bulletin to March 26, it was still 10 days old. SYNOP bulletins are issued every 3–6 hours; anything older than 24 hours is stale data that NOAA forgot to purge. Reject the entire bulletin at parse time:
+
+```typescript
+const MAX_BULLETIN_AGE_MS = 24 * 60 * 60 * 1000;
+if (bulletinTimestamp !== null) {
+  const ageMs = Date.now() - bulletinTimestamp.getTime();
+  if (ageMs > MAX_BULLETIN_AGE_MS) {
+    return []; // discard all observations in this bulletin
+  }
+}
+```
+
+After both fixes: Russia went from 250 decoded observations down to 165, and Mama station disappeared from results entirely.
+
+### Is the Logic Provably Correct?
+
+Partially. Here's the honest accounting:
+
+The month-rollback heuristic is **our own invention** — the WMO spec has no equivalent because it assumes you'll never read a bulletin from a different month. Our heuristic works correctly for every realistic scenario:
+
+| Scenario | Result |
+|---|---|
+| Bulletin from today | No rollback (already in the past) |
+| Bulletin from earlier this month | No rollback |
+| Bulletin from late last month (MAMA case) | Rolls back correctly |
+| Bulletin issued 30 min ahead (pre-issued) | Stays in current month (within 1h tolerance) |
+
+The **one genuine ambiguity**: a bulletin from exactly one month ago could share the same day-of-month as today. Our code would assign it to the current month (making it appear 0–23 hours old) rather than the previous month (30+ days old). In practice this doesn't matter — the 24-hour staleness guard in Guard 2 will reject it either way.
+
+The one thing that would eliminate all ambiguity is using the `Last-Modified` HTTP response header from NOAA's server instead of the bulletin's internal timestamp. That header gives a full UTC timestamp with year and month. We don't use it yet — it's a potential future improvement.
+
+### What I Learned About "Authoritative" Formats
+
+SYNOP FM-12 dates from 1949. It was designed for teleprinter transmission over radio circuits where every character cost bandwidth. The decision to omit month and year from the timestamp was a deliberate space-saving measure that made complete sense in 1949 — bulletins were consumed within minutes of transmission.
+
+Seventy-five years later, those bulletins sit on an HTTP server for weeks or months because nobody set up a cleanup job, and a developer in 2026 has to reverse-engineer the month from context clues.
+
+This is not a NOAA failure. It's a reminder that data formats carry assumptions about their operational context, and when the context changes (from real-time radio teletype to indefinitely-stored HTTP files), those assumptions become bugs.
+
+**Always check your timestamp sources against wall-clock time. Don't trust that "current" data is actually current.**
+
+---
+
+*Part 2 documents Phase 1 completion and the SYNOP timestamp bug investigation, April 2026.*
